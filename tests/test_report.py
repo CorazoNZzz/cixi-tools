@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import textwrap
 
-from cixi_tools import generate_report, parse_report_text
+from docx import Document
+
+from cixi_tools import create_docx_report, generate_report, parse_report_text
+from cixi_tools.report import DEFAULT_ACTIONS
 
 
 RAW_TEXT = textwrap.dedent(
@@ -52,3 +55,16 @@ def test_parse_report_text_extracts_core_fields():
 def test_generate_report_matches_expected_output():
     report = generate_report(RAW_TEXT)
     assert report == EXPECTED_REPORT
+
+
+def test_create_docx_report_writes_expected_sections(tmp_path):
+    output = tmp_path / "report.docx"
+    create_docx_report(RAW_TEXT, output)
+
+    document = Document(output)
+    texts = [paragraph.text for paragraph in document.paragraphs]
+
+    assert texts[0] == "简易溯源报告"
+    assert texts[1:7] == EXPECTED_REPORT.splitlines()[:6]
+    assert texts[7] == "处置建议："
+    assert texts[8:] == list(DEFAULT_ACTIONS)

@@ -16,7 +16,13 @@
    疑似企业：浙江新韩剑高分子科技有限公司
    ```
 
-2. 通过命令行调用：
+2. 安装依赖（推荐使用虚拟环境）：
+
+   ```bash
+   python -m pip install python-docx
+   ```
+
+3. 通过命令行调用：
 
    ```bash
    python -m cixi_tools input.txt
@@ -51,4 +57,34 @@
    加密复测：在香山路—波涛路轴线于当晚/次日早高峰各复测一次；如仍偏高，再组织针对性执法。
    ```
 
-3. 需要自定义“处置建议”时，可在调用 `cixi_tools.generate_report` 时传入新的建议列表。
+4. 导出 Word 报告：
+
+   ```bash
+   python -m cixi_tools input.txt --docx report.docx
+   ```
+
+   运行后终端会仍旧打印文字报告，同时会在指定路径生成 `report.docx` 文件。
+
+5. 需要自定义“处置建议”时，可在调用 `cixi_tools.generate_report` 或 `cixi_tools.create_docx_report` 时传入新的建议列表。
+
+## 打包成可执行文件（Windows EXE）
+
+1. 确保已安装依赖：
+
+   ```bash
+   python -m pip install python-docx pyinstaller
+   ```
+
+2. 在项目根目录执行：
+
+   ```bash
+   pyinstaller --onefile --name voc-report cixi_tools/__main__.py
+   ```
+
+   构建完成后，可在 `dist/voc-report.exe` 找到单文件可执行程序，运行方式与命令行示例相同：
+
+   ```bash
+   dist/voc-report.exe input.txt --docx report.docx
+   ```
+
+   如果需要从标准输入读取数据，可直接运行 `dist/voc-report.exe` 后粘贴内容并按 `Ctrl+Z`（Windows）结束输入。

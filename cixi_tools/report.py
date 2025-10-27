@@ -5,7 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 import re
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, Sequence, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover - imported for typing only
+    from docx.document import Document as DocxDocument
 
 
 @dataclass
@@ -221,25 +224,75 @@ DEFAULT_ACTIONS = (
 )
 
 
+def _report_sections(
+    data: ReportData,
+    actions: Sequence[str],
+) -> Tuple[List[str], Sequence[str]]:
+    header_lines = [
+        f"时间：{_format_time_span(data.alarm_time, data.travel_time)}",
+        f"站点：{_format_station(data)}",
+        f"位置：{data.high_value_location}；{data.anomaly_location}",
+        f"现场：{_format_scene(data)}",
+        f"GC-MS：{_format_gcms(data.gcms_factors)}",
+        f"研判：{_format_judgement(data)}",
+    ]
+    return header_lines, actions
+
+
 def generate_report(text: str, actions: Iterable[str] = DEFAULT_ACTIONS) -> str:
     """Generate a simplified source tracing report from raw text."""
 
     data = parse_report_text(text)
+    actions_list = list(actions)
+    header_lines, action_lines = _report_sections(data, actions_list)
 
-    lines = [
-        f"时间：{_format_time_span(data.alarm_time, data.travel_time)}",
-        f"站点：{_format_station(data)}",
-        (
-            "位置："
-            f"{data.high_value_location}；{data.anomaly_location}"
-        ),
-        f"现场：{_format_scene(data)}",
-        f"GC-MS：{_format_gcms(data.gcms_factors)}",
-        f"研判：{_format_judgement(data)}",
-        "处置建议：",
-    ]
-
-    for action in actions:
-        lines.append(action)
+    lines = list(header_lines)
+    lines.append("处置建议：")
+    lines.extend(action_lines)
 
     return "\n".join(lines)
+
+
+def create_docx_report(
+    text: str,
+    output_path: str,
+    *,
+    actions: Iterable[str] = DEFAULT_ACTIONS,
+    title: str = "简易溯源报告",
+) -> str:
+    """Create a Word document containing the simplified report.
+
+    Args:
+        text: Raw incident description.
+        output_path: Destination for the generated ``.docx`` document.
+        actions: Custom disposal suggestions. Defaults to :data:`DEFAULT_ACTIONS`.
+        title: Optional heading to use at the top of the document.
+
+    Returns:
+        The ``output_path`` where the document was saved.
+    """
+
+    try:
+        from docx import Document as DocxDocumentFactory  # type: ignore import-not-found
+    except ImportError as exc:  # pragma: no cover - exercised in environments without optional dep
+        raise RuntimeError(
+            "python-docx 未安装，无法导出 Word 报告。请先运行 'python -m pip install python-docx'."
+        ) from exc
+
+    data = parse_report_text(text)
+    actions_list = list(actions)
+    header_lines, action_lines = _report_sections(data, actions_list)
+
+    document: "DocxDocument" = DocxDocumentFactory()
+    if title:
+        document.add_heading(title, level=1)
+
+    for line in header_lines:
+        document.add_paragraph(line)
+
+    document.add_paragraph("处置建议：")
+    for action in action_lines:
+        document.add_paragraph(action, style="List Bullet")
+
+    document.save(output_path)
+    return output_path

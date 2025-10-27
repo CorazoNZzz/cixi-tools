@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from .report import DEFAULT_ACTIONS, generate_report
+from .report import DEFAULT_ACTIONS, create_docx_report, generate_report
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -16,6 +16,11 @@ def _build_parser() -> argparse.ArgumentParser:
         "input",
         nargs="?",
         help="Path to a text file containing the raw incident description. If omitted, stdin is used.",
+    )
+    parser.add_argument(
+        "--docx",
+        metavar="PATH",
+        help="If provided, also export the report to the given .docx file.",
     )
     return parser
 
@@ -35,6 +40,9 @@ def main(argv: list[str] | None = None) -> int:
         raw_text = sys.stdin.read()
 
     report = generate_report(raw_text, actions=DEFAULT_ACTIONS)
+    if args.docx:
+        create_docx_report(raw_text, args.docx, actions=DEFAULT_ACTIONS)
+        print(f"Report saved to {args.docx}")
     print(report)
     return 0
 
