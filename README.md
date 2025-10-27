@@ -2,6 +2,13 @@
 
 一个用于将原始 VOC 异常记录转换成简易溯源报告的小工具。
 
+## 快速上手
+
+1. **准备环境**：已安装 Python 3.9+（Windows、macOS、Linux 均可）。如果只想运行成品 exe，可直接跳到[使用打包版](#%E4%BD%BF%E7%94%A8%E6%89%93%E5%8C%85%E7%89%88)。
+2. **安装依赖**：在命令行运行 `python -m pip install python-docx`。
+3. **准备原始记录**：把现场日志复制到一个 `.txt` 文件中，例如 `input.txt`，或直接准备好要粘贴到终端的文本。
+4. **生成报告**：按照下文的[命令行示例](#%E5%91%BD%E4%BB%A4%E8%A1%8C%E7%A4%BA%E4%BE%8B)运行即可输出文字版报告，如需要 Word 文档可追加 `--docx` 参数。
+
 ## 使用方法
 
 1. 将现场记录整理成类似如下的文本（支持换行与中文冒号）：
@@ -22,7 +29,9 @@
    python -m pip install python-docx
    ```
 
-3. 通过命令行调用：
+### 命令行示例
+
+1. 通过命令行调用：
 
    ```bash
    python -m cixi_tools input.txt
@@ -57,7 +66,7 @@
    加密复测：在香山路—波涛路轴线于当晚/次日早高峰各复测一次；如仍偏高，再组织针对性执法。
    ```
 
-4. 导出 Word 报告：
+2. 导出 Word 报告：
 
    ```bash
    python -m cixi_tools input.txt --docx report.docx
@@ -65,7 +74,22 @@
 
    运行后终端会仍旧打印文字报告，同时会在指定路径生成 `report.docx` 文件。
 
-5. 需要自定义“处置建议”时，可在调用 `cixi_tools.generate_report` 或 `cixi_tools.create_docx_report` 时传入新的建议列表。
+3. 需要自定义“处置建议”时，可在调用 `cixi_tools.generate_report` 或 `cixi_tools.create_docx_report` 时传入新的建议列表。
+
+## 使用打包版
+
+如果按照下节步骤生成了 `voc-report.exe`：
+
+1. 将 `voc-report.exe` 与输入的 `.txt` 文件放在同一目录（或记住输入文件的完整路径）。
+2. 在 Windows 搜索栏输入 “cmd” 并打开命令提示符，执行如下命令（以当前目录下的 `input.txt` 为例）：
+
+   ```bash
+   voc-report.exe input.txt --docx report.docx
+   ```
+
+   - 若只想查看终端文字报告，可以省略 `--docx report.docx`。
+   - 若希望直接在窗口粘贴原始文本，可直接运行 `voc-report.exe`，粘贴内容后按下 `Ctrl+Z` 再回车结束输入。
+3. 成功执行后会在终端显示溯源报告，并在当前目录生成 `report.docx`（如有指定）。
 
 ## 打包成可执行文件（Windows EXE）
 
